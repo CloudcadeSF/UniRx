@@ -38,7 +38,7 @@ namespace UniRx
 #if !UniRxLibrary
         [SerializeField]
 #endif
-        T value = default(T);
+        T value;
 
         [NonSerialized]
         Subject<T> publisher = null;
@@ -102,7 +102,6 @@ namespace UniRx
         }
 
         public ReactiveProperty()
-            : this(default(T))
         {
             // default constructor 'can' publish value on subscribe.
             // because sometimes value is deserialized from UnityEngine.
@@ -294,7 +293,7 @@ namespace UniRx
 
         Exception lastException = null;
 
-        T value = default(T);
+        T value;
 
         Subject<T> publisher = null;
 
