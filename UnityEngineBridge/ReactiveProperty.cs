@@ -17,6 +17,35 @@ namespace UniRx
         new T Value { get; set; }
     }
 
+    public struct PropertyChangeEvent<T> : IEquatable<PropertyChangeEvent<T>>
+    {
+        public T OldValue { get; private set; }
+        public T NewValue { get; private set; }
+
+        public PropertyChangeEvent(T oldValue, T newValue)
+            : this()
+        {
+            OldValue = oldValue;
+            NewValue = newValue;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("OldValue:{0} NewValue:{1}", OldValue, NewValue);
+        }
+
+        public override int GetHashCode()
+        {
+            return EqualityComparer<T>.Default.GetHashCode(OldValue) << 2 ^ EqualityComparer<T>.Default.GetHashCode(NewValue) >> 2;
+        }
+
+        public bool Equals(PropertyChangeEvent<T> other)
+        {
+            return EqualityComparer<T>.Default.Equals(OldValue, other.OldValue)
+                   && EqualityComparer<T>.Default.Equals(NewValue, other.NewValue);
+        }
+    }
+
     /// <summary>
     /// Lightweight property broker.
     /// </summary>
@@ -68,6 +97,12 @@ namespace UniRx
                 if (!canPublishValueOnSubscribe)
                 {
                     canPublishValueOnSubscribe = true;
+
+                    if (propertyChange != null)
+                    {
+                        propertyChange.OnNext(new PropertyChangeEvent<T>(this.value, value));
+                    }
+
                     SetValue(value);
 
                     if (isDisposed) return; // don't notify but set value
@@ -81,6 +116,11 @@ namespace UniRx
 
                 if (!EqualityComparer.Equals(this.value, value))
                 {
+                    if (propertyChange != null)
+                    {
+                        propertyChange.OnNext(new PropertyChangeEvent<T>(this.value, value));
+                    }
+
                     SetValue(value);
 
                     if (isDisposed) return;
@@ -185,6 +225,30 @@ namespace UniRx
             }
         }
 
+        [NonSerialized]
+        Subject<PropertyChangeEvent<T>> propertyChange = null;
+        public IObservable<PropertyChangeEvent<T>> ObserveChange()
+        {
+            if (isDisposed) return Observable.Empty<PropertyChangeEvent<T>>();
+            return propertyChange ?? (propertyChange = new Subject<PropertyChangeEvent<T>>());
+        }
+
+        void DisposeSubject<TSubject>(ref Subject<TSubject> subject)
+        {
+            if (subject != null)
+            {
+                try
+                {
+                    subject.OnCompleted();
+                }
+                finally
+                {
+                    subject.Dispose();
+                    subject = null;
+                }
+            }
+        }
+        
         public void Dispose()
         {
             Dispose(true);
@@ -216,6 +280,8 @@ namespace UniRx
                         publisher = null;
                     }
                 }
+
+                DisposeSubject(ref propertyChange);
             }
         }
 
