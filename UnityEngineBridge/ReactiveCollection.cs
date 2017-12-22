@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -219,6 +220,22 @@ namespace UniRx
             if (collectionReplace != null) collectionReplace.OnNext(new CollectionReplaceEvent<T>(index, oldItem, item));
         }
 
+        public void Update(IEnumerable<T> newListState)
+        {
+            List<T> listCache = newListState.ToList();
+            List<T> toRemove = Items.Except(listCache).ToList();
+            List<T> toAdd = listCache.Except(Items).ToList();
+
+            foreach (var item in toRemove)
+            {
+                Items.Remove(item);
+            }
+
+            foreach (var item in toAdd)
+            {
+                Items.Add(item);
+            }
+        }
 
         [NonSerialized]
         Subject<int> countChanged = null;
