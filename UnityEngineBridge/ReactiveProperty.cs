@@ -98,12 +98,13 @@ namespace UniRx
                 {
                     canPublishValueOnSubscribe = true;
 
+                    T oldValue = value;
+                    SetValue(value);
+
                     if (propertyChange != null)
                     {
-                        propertyChange.OnNext(new PropertyChangeEvent<T>(this.value, value));
+                        propertyChange.OnNext(new PropertyChangeEvent<T>(oldValue, this.value));
                     }
-
-                    SetValue(value);
 
                     if (isDisposed) return; // don't notify but set value
                     var p = publisher;
@@ -116,12 +117,13 @@ namespace UniRx
 
                 if (!EqualityComparer.Equals(this.value, value))
                 {
+                    T oldValue = value;
+                    SetValue(value);
+
                     if (propertyChange != null)
                     {
-                        propertyChange.OnNext(new PropertyChangeEvent<T>(this.value, value));
+                        propertyChange.OnNext(new PropertyChangeEvent<T>(oldValue, this.value));
                     }
-
-                    SetValue(value);
 
                     if (isDisposed) return;
                     var p = publisher;
