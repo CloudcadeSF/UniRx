@@ -90,7 +90,7 @@ namespace UniRx
         {
             get
             {
-                return value;
+                return this.value;
             }
             set
             {
@@ -98,7 +98,7 @@ namespace UniRx
                 {
                     canPublishValueOnSubscribe = true;
 
-                    T oldValue = value;
+                    T oldValue = this.value;
                     SetValue(value);
 
                     if (propertyChange != null)
@@ -117,7 +117,7 @@ namespace UniRx
 
                 if (!EqualityComparer.Equals(this.value, value))
                 {
-                    T oldValue = value;
+                    T oldValue = this.value;
                     SetValue(value);
 
                     if (propertyChange != null)
